@@ -6,8 +6,8 @@ implementing bound variables, similar to Bruijn indices/locally nameless convent
 
 https://golem.ph.utexas.edu/category/2021/08/you_could_have_invented_de_bru.html
 
-in order to get the kind of idea we us (what we are doing here is the same as their idea with "C":= Set and "suc":= the coq option operator
-which takes a set X and return X with one additional extra element "None").
+What we are doing here is the same as their idea with "C":= Set and "suc":= the coq option operator
+which takes a set X and return X with one additional extra element "None".
 
 Here is the idea in a nutshell: if C is any set, we define inductively a lambda term with variables in C as
 
