@@ -1,0 +1,4 @@
+-Q ./ NasLC 
+nested_abstract_syntax_lambda_calculus.v
+confluence_of_lambda_calculus_according_to_takahashi.v
+naslc_library.v

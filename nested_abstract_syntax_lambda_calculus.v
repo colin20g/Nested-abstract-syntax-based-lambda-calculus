@@ -619,9 +619,40 @@ Section reductions.
   
   Section beta_eta_reduction.
 
+    Inductive lt_weak_beta_eta_reduction (C:Set): Lambda_Term C -> Lambda_Term C -> Set:=
+    |ltwber_redex: forall (f:Lambda_Term (option C)) (t:Lambda_Term C),
+        lt_weak_beta_eta_reduction C (lt_app C (lt_abs C f) t) (lt_specify_new_var C f t)
+    |ltwber_eta: forall (f: Lambda_Term C),
+        lt_weak_beta_eta_reduction
+          C 
+          (lt_abs C (lt_app (option C) (lt_constant_embedding C f) (lt_var (option C) None)))
+          f
+    |ltwber_app: forall x x' y y':Lambda_Term C,
+        lt_weak_beta_eta_reduction C x x' -> lt_weak_beta_eta_reduction C y y' ->
+        lt_weak_beta_eta_reduction C (lt_app C x y) (lt_app C x' y')
+    |ltwber_reflexivity: forall x:Lambda_Term C, lt_weak_beta_eta_reduction C x x
+    |ltwber_transitivity: forall x y z:Lambda_Term C,
+        lt_weak_beta_eta_reduction C x y -> lt_weak_beta_eta_reduction C y z ->
+        lt_weak_beta_eta_reduction C x z.
+
+
+    Fixpoint weak_to_weak_beta_eta_reduction (C:Set) (a b:Lambda_Term C)
+             (w: lt_weak_reduction C a b) {struct w}:
+      lt_weak_beta_eta_reduction C a b.
+    Proof.
+      destruct w.
+      apply ltwber_redex. apply ltwber_app.
+      apply weak_to_weak_beta_eta_reduction; assumption.
+      apply weak_to_weak_beta_eta_reduction; assumption. apply ltwber_reflexivity.
+      apply ltwber_transitivity with (y:=y).
+      apply weak_to_weak_beta_eta_reduction; assumption.
+      apply weak_to_weak_beta_eta_reduction; assumption.
+    Defined.    
+
     (** The most common definition of reduction in lambda calculus is the one below;
-     the one we defined earlier is weaker but more appropriate for the applications 
-     we'll consider later in the text. *)
+     the ones we defined earlier are weaker but more appropriate for the applications 
+     we'll consider later in the text. The confluence of the relationship below
+     is proven in a separate file. *)
     
     Inductive lt_beta_eta_reduction (C:Set): Lambda_Term C -> Lambda_Term C -> Set:=
     |ltber_redex: forall (f:Lambda_Term (option C)) (t:Lambda_Term C),
@@ -634,7 +665,7 @@ Section reductions.
     |ltber_app: forall x x' y y':Lambda_Term C,
         lt_beta_eta_reduction C x x' -> lt_beta_eta_reduction C y y' ->
         lt_beta_eta_reduction C (lt_app C x y) (lt_app C x' y')
-    |ltber_extensionality: forall (f g:Lambda_Term (option C)),
+    |ltber_abs: forall (f g:Lambda_Term (option C)),
         lt_beta_eta_reduction (option C) f g ->
         lt_beta_eta_reduction C (lt_abs C f) (lt_abs C g)
     |ltber_reflexivity: forall x:Lambda_Term C, lt_beta_eta_reduction C x x
@@ -1045,17 +1076,17 @@ Section elementary_combinators.
     apply ct_reduction_substitution; assumption.
   Defined.
 
-  Fixpoint lt_to_c (C:Set) (f:Lambda_Term C) {struct f}:
+  Fixpoint lt_to_ct (C:Set) (f:Lambda_Term C) {struct f}:
     C_Term C:=    
     match f with
     |lt_var _ j => ct_var C j 
-    |lt_app _ a b => ct_app C (lt_to_c C a) (lt_to_c C b)
-    |lt_abs _ g => ct_abs C (lt_to_c (option C) g)
+    |lt_app _ a b => ct_app C (lt_to_ct C a) (lt_to_ct C b)
+    |lt_abs _ g => ct_abs C (lt_to_ct (option C) g)
     end.  
 
   Definition ct_to_lt_to_ct_inverse_identity:
     forall (C:Set) (x:C_Term C),
-      lt_to_c C (ct_to_lt C x) = x.
+      lt_to_ct C (ct_to_lt C x) = x.
   Proof.
     induction x.
     simpl; reflexivity.
